@@ -5,7 +5,9 @@ import Navbar from "./Navbar"
 import ActivityDashboard from "../../features/activities/dashborad/ActivityDashboard"
 
 function App() {
-  const [activities, setActivities] = useState<Activity[]>([])
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | undefined>(undefined);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     axios.get<Activity[]>("https://localhost:5001/api/activities")
@@ -13,12 +15,56 @@ function App() {
 
     return () => { }
   }, [])
+
+  const handleSelectActivity = (id: string) => {
+    setSelectedActivity(activities.find(x => x.id === id));
+  }
+
+  const handleCancelSelectedActivity = () => {
+    setSelectedActivity(undefined);
+  }
+
+  const handleFormOpen = (id?: string) => {
+    if (id) handleSelectActivity(id);
+    else handleCancelSelectedActivity();
+    setEditMode(true);
+  }
+
+  const handleFormClose = () => {
+    setEditMode(false);
+  }
+
+  const handleSubmitForm = (activity: Activity) => {
+    if (activity.id) {
+      setActivities(activities.map(x => x.id === activity.id ? activity : x));
+    } else {
+      const newActivity = {...activity, id: activities.length.toString()}
+      setSelectedActivity(newActivity);
+      setActivities([...activities, newActivity]);
+    }
+    setEditMode(false);
+  }
+
+  const handleDeleteActivity = (id: string) => {
+    setActivities(activities.filter(x => x.id !== id));
+  }
+
   return (
-    <Box sx={{ backgroundColor: '#eeeeee'}}>
+    <Box sx={{ backgroundColor: '#eeeeee' }}>
       <CssBaseline />
-      <Navbar />
+      <Navbar openFrom={handleFormOpen} />
       <Container maxWidth='xl' sx={{ mt: 2 }}>
-       <ActivityDashboard activities={activities}/>
+        <ActivityDashboard
+          activities={activities}
+          selectActivity={handleSelectActivity}
+          cancelSelectedActivity={handleCancelSelectedActivity}
+          selectedActivity={selectedActivity}
+          editMode={editMode}
+          openForm={handleFormOpen}
+          closeForm={handleFormClose}
+          submitForm={handleSubmitForm}
+          deleteActivity={handleDeleteActivity}
+        />
       </Container>
 
     </Box>
