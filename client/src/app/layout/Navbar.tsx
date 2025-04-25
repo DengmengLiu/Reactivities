@@ -27,7 +27,9 @@ export default function Navbar() {
                             </MenuItemLink>
                         </Box>
                         <Box>
-                            <MenuItem></MenuItem>
+                            <MenuItem>
+                                User menu
+                            </MenuItem>
                         </Box>
 
                     </Toolbar>
