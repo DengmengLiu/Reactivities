@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import agent from "../api/agent";
+import { useLocation } from "react-router";
 
 export const useActivities = (id?: string) => {
 
-    const QueryClient = useQueryClient();
+    const queryClient = useQueryClient();
+    const location = useLocation();
 
     // React Query for fetching activities
     const { data: activities, isPending } = useQuery({
@@ -11,7 +13,11 @@ export const useActivities = (id?: string) => {
         queryFn: async () => {
             const response = await agent.get<Activity[]>("/activities");
             return response.data;
-        }
+        },
+        //staleTime: 1000 * 60 * 5, // 5 minutes
+
+        // Only fetch if not on activity details page
+        enabled: !id && location.pathname === '/activities' 
     })
 
     const { data: activity, isLoading: isLoadingActivity } = useQuery({
@@ -28,7 +34,7 @@ export const useActivities = (id?: string) => {
             await agent.put('/activities', activity)
         },
         onSuccess: async () => {
-            await QueryClient.invalidateQueries({
+            await queryClient.invalidateQueries({
                 queryKey: ['activities']
             })
         }
@@ -40,7 +46,7 @@ export const useActivities = (id?: string) => {
             return response.data;
         },
         onSuccess: async () => {
-            await QueryClient.invalidateQueries({
+            await queryClient.invalidateQueries({
                 queryKey: ['activities']
             })
         }
@@ -51,7 +57,7 @@ export const useActivities = (id?: string) => {
             await agent.delete(`/activities/${id}`)
         },
         onSuccess: async () => {
-            await QueryClient.invalidateQueries({
+            await queryClient.invalidateQueries({
                 queryKey: ['activities']
             })
         }
